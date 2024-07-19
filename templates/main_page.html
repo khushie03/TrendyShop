@@ -5,11 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
-    <title>Bootstrap Example</title>
+    <title>TrendyShop</title>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      .container-fluid {
+        background-color: beige;
+        padding: 0; 
+      }
+      .navbar-brand {
+        text-align: center;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .navbar-brand img {
+        margin-right: 12px;
+      }
+      .navbar-brand span {
+        font-style: italic;
+      }
+      .card-img-top {
+        height: 200px; /* Fixed height for images */
+        object-fit: cover; /* Ensure the image covers the area */
+      }
+      .card {
+        margin-right: 2mm; /* Small margin to reduce the gap */
+      }
+      .card:last-child {
+        margin-right: 0; /* Remove margin on the last card */
+      }
+    </style>
   </head>
-  <body class="p-3 m-0 border-0 bd-example m-0 border-0"> 
-
+  <body class="p-3 m-0 border-0 bd-example m-0 border-0">
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img src="https://i.pinimg.com/474x/fd/b1/68/fdb1686ab2fd3b65d1c2a098028cc7e8.jpg" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+          <span>TrendyShop</span>
+        </a>
+      </div>
+    </nav>
     <div class="container">
       <div class="row">
         <div class="col-md-6">
@@ -24,17 +60,16 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card" style="width: 18rem;">
-              <img src="https://plus.unsplash.com/premium_photo-1673853725302-3bb17aecd303?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZmFzaGlvbiUyMGZpbmRlcnxlbnwwfHwwfHx8MA%3D%3D" class="card-img-top" alt="...">
-              <div class="card-body">
-                <h5 class="card-title">Cloth Finder</h5>
-                <p class="card-text">Here Search for trending makeup Videos and get the products.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
-              </div>
+          <div class="card" style="width: 18rem;">
+            <img src="https://plus.unsplash.com/premium_photo-1673853725302-3bb17aecd303?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZmFzaGlvbiUyMGZpbmRlcnxlbnwwfHwwfHx8MA%3D%3D" class="card-img-top" alt="...">
+            <div class="card-body">
+              <h5 class="card-title">Cloth Finder</h5>
+              <p class="card-text">Here Search for trending makeup Videos and get the products.</p>
+              <a href="#" class="btn btn-primary">Go somewhere</a>
             </div>
           </div>
+        </div>
       </div>
     </div>
-    
   </body>
 </html>

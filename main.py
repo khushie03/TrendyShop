@@ -47,16 +47,22 @@ def trend_search(product_name):
         model = genai.GenerativeModel("gemini-pro")
         response = model.generate_content(prompt + transcript_text)
         return response.text
-    #links = 
     shorts_results = link_extraction(product_name)
     links = []
+    thumbnail = []
     for result in shorts_results:
         links.extend(short['link'] for short in result['shorts'])
-    print(links)
+    for img in shorts_results:
+        thumbnail.extend(short['thumbnail'] for short in result['thumbnail'])
+    
+    print("The links generated :",links)
+    print("List of the image link",thumbnail)
+    products = []
     for i in links[:10]:
         script = transcript_products(i)
         print(script)
         x = generate_gemini_content(script)
-        print(x)
-
+        products.append(x)
+    print(products)
 trend_search("trending lipstick products")
+
