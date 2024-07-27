@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+    <title>TrendyShop</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      .container-fluid {
+        background-color: beige;
+        padding: 0; 
+      }
+      .navbar-brand {
+        text-align: center;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .navbar-brand img {
+        margin-right: 12px;
+      }
+      .navbar-brand span {
+        font-style: italic;
+        text-decoration: underline;
+      }
+      .container-fluid_1 {
+        background-color: antiquewhite;
+        text-align: center;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: -16px; /* Adjust this value as needed */
+      }
+      .navbar {
+        margin-bottom: 0; 
+      }
+      .navbar-nav {
+        margin: 0 auto; 
+      }
+      .upload-section {
+        text-align: center;
+        padding: 50px;
+      }
+      .upload-section h1 {
+        margin-bottom: 30px;
+      }
+      .upload-section input[type="file"] {
+        margin-top: 20px;
+      }
+      .image-preview {
+        margin-top: 20px;
+        display: none; /* Hide initially */
+      }
+      .image-preview img {
+        max-width: 100%;
+        height: auto;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body class="p-3 m-0 border-0 bd-example m-0 border-0">
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img src="https://i.pinimg.com/474x/fd/b1/68/fdb1686ab2fd3b65d1c2a098028cc7e8.jpg" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+          <span>TrendyShop</span>
+        </a>
+      </div>
+    </nav>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container-fluid_1">
+        <a class="navbar-brand" href="#">
+        </a>
+      </div>
+    </nav>
+    <div class="upload-section">
+        <img src="C:\PROJECTS\TrendyShop\static\Found Your Perfect Shade.png" alt="Logo" width="400" height="200" class="d-inline-block align-text-top">
+      <h1>Found Your Perfect Matching Foundation</h1>
+      <form>
+        <input type="file" accept="image/*" class="form-control" id="profile-picture">
+        <button type="submit" class="btn btn-primary mt-3">Upload Picture</button>
+      </form>
+      <div class="image-preview" id="image-preview">
+        <img id="preview-image" src="" alt="Image Preview">
+      </div>
+    </div>
+
+    <script>
+      document.getElementById('profile-picture').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const img = document.getElementById('preview-image');
+            img.src = e.target.result;
+            document.getElementById('image-preview').style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        } else {
+          document.getElementById('image-preview').style.display = 'none';
+        }
+      });
+    </script>
+  </body>
+</html>
