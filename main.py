@@ -1,19 +1,23 @@
 from serpapi import GoogleSearch
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptAvailable
 import google.generativeai as genai
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 
 genai.configure(api_key="AIzaSyDM9xdKD9JDW_wu6Lp1gnCraUK3Ds-DPNc")
+
 def trend_search(product_name):
     def link_extraction(product_name):
         params = {
-        "engine": "youtube",
-        "search_query": product_name,
-        "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71",}
+            "engine": "youtube",
+            "search_query": product_name,
+            "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71"
+        }
+
         search = GoogleSearch(params)
         results = search.get_dict()
-        shorts_results = results["shorts_results"]
-        return shorts_results
-    
+        video_results = results.get("video_results", [])
+        return video_results
+
     def get_video_id_from_url(youtube_video_url):
         if "watch?v=" in youtube_video_url:
             return youtube_video_url.split("watch?v=")[1]
@@ -22,47 +26,63 @@ def trend_search(product_name):
         else:
             return None
 
-    def transcript_products(youtube_video_url):
+    
+
+    def fetch_transcript(video_id):
+        video_id = get_video_id_from_url(video_id)
         try:
-            video_id = get_video_id_from_url(youtube_video_url)
-            if video_id:
-                transcript_text = YouTubeTranscriptApi.get_transcript(video_id)
-                transcript = " ".join([item['text'] for item in transcript_text])
+            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+            return transcript
+        except (TranscriptsDisabled, NoTranscriptFound):
+            try:
+                # Attempt to fetch the transcript in any available language
+                transcript = YouTubeTranscriptApi.get_transcript(video_id)
                 return transcript
-            else:
-                return "Invalid YouTube URL format"
-        
-        except NoTranscriptAvailable:
-            return "No transcription available"
-        except Exception as e:
-            raise e
+            except Exception as e:
+                print(f"Error: Could not retrieve a transcript for the video {video_id}! {str(e)}")
+                return None
+
+
     def generate_gemini_content(transcript_text):
         prompt = """
-        Here I am trying to analyse the trends through the trending videos and accordingly generating a list of the products.
-        Here you have given the transcripts of the trending youtube videos and you have to generate a list of the
-        products that are mentioned in that transcripts .Here automated trend extractor is there which will automatically extract the products 
-        related to the videos .
+        Here I am trying to analyze the trends through the trending videos and accordingly generating a list of the products.
+        Here you have given the transcripts of the trending YouTube videos and you have to generate a list of the
+        products that are mentioned in that transcripts. Here automated trend extractor is there which will automatically extract the products 
+        related to the videos.
         """
 
-        model = genai.GenerativeModel("gemini-pro")
-        response = model.generate_content(prompt + transcript_text)
-        return response.text
-    shorts_results = link_extraction(product_name)
-    links = []
-    thumbnail = []
-    for result in shorts_results:
-        links.extend(short['link'] for short in result['shorts'])
-    for img in shorts_results:
-        thumbnail.extend(short['thumbnail'] for short in result['thumbnail'])
-    
-    print("The links generated :",links)
-    print("List of the image link",thumbnail)
-    products = []
-    for i in links[:10]:
-        script = transcript_products(i)
-        print(script)
-        x = generate_gemini_content(script)
-        products.append(x)
-    print(products)
-trend_search("trending lipstick products")
+        try:
+            response = genai.generate(
+                model="text-bison-001",
+                messages=[{"role": "system", "content": prompt + transcript_text}]
+            )
+            return response['choices'][0]['message']['content']
+        except Exception as e:
+            return f"Error: {str(e)}"
 
+    video_results = link_extraction(product_name)
+    links = []
+    thumbnails = []
+    
+    for video in video_results:
+        links.append(video['link'])
+        thumbnails.append(video['thumbnail'])
+        print(video['link'])
+        print(video['thumbnail'])
+    
+    print("The links generated:", links)
+    print("List of the image link", thumbnails)
+
+    products = []
+    for link in links:
+        script = fetch_transcript(link)
+        #print(script)
+        if "Error" not in script:
+            product_list = generate_gemini_content(script)
+            products.append(product_list)
+        else:
+            products.append(script)
+
+    print(products)
+
+trend_search("trending lipstick products India")
