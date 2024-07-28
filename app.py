@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
 import os
 from PIL import Image
 from io import BytesIO
@@ -9,7 +9,7 @@ import numpy as np
 import google.generativeai as genai
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = r'C:\PROJECTS\TrendyShop\uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
 genai.configure(api_key="AIzaSyDM9xdKD9JDW_wu6Lp1gnCraUK3Ds-DPNc")
@@ -81,13 +81,13 @@ def match_foundation_list(hex_code, sort_by, min_price, max_price):
 def index():
     return render_template('index.html')
 
-@app.route("/main_page")
+@app.route('/main_page')
 def main_page():
-    return render_template("main_page.html")
+    return render_template('main_page.html')
 
-@app.route("/foundation")
+@app.route('/foundation')
 def foundation():
-    return render_template("foundation.html")
+    return render_template('foundation.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -112,7 +112,8 @@ def upload_file():
 
 prompt = """
 You are a color palette analysis expert with respect to the eye color and face color in hex format.
-Suggest the colors that will suit people and the type of clothes they should wear. """
+Suggest the colors that will suit people and the type of clothes they should wear. 
+Write the text in the paragraph form no bullet points or bold text . Just simple text. And Just Provide the text nothing else . """
 
 @app.route('/color_analysis', methods=['POST'])
 def color_analysis():
