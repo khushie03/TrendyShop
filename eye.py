@@ -1,0 +1,22 @@
+import cv2
+import os
+
+def detect_and_crop_eyes(image_path):
+    eye_cascade = cv2.CascadeClassifier('C:/PROJECTS/TrendyShop/haarcascade_eye.xml')
+
+    image = cv2.imread(image_path)
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    eyes = eye_cascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
+    
+    if len(eyes) > 0:
+        x, y, w, h = eyes[0]
+        eye = image[y:y+h, x:x+w]
+        return eye
+    
+    return None
+
+image_path = r'C:\PROJECTS\TrendyShop\WhatsApp Image 2024-07-24 at 20.53.24.jpeg'
+output_dir = 'cropped_eyes'
+num_eyes = detect_and_crop_eyes(image_path, output_dir)
+print(f"Total eyes detected and saved: {num_eyes}")

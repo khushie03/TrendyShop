@@ -1,3 +1,4 @@
+import requests
 import numpy as np
 from PIL import Image
 from sklearn.cluster import MiniBatchKMeans
@@ -6,6 +7,11 @@ from skimage.color import rgb2lab, deltaE_cie76
 import requests
 from io import BytesIO
 import os
+from face import detect_and_crop_faces
+from eye import detect_and_crop_eyes
+import google.generativeai as genai
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
 
 def get_hex_url(num_clusters, img_path):
     if img_path.startswith(('http://', 'https://')):
@@ -58,9 +64,68 @@ def return_top_6(face_hex , foundation_hexlist):
 
 "Returning the list of the top foundation with respect to the matching hex code"
 
-def match_foundation_list(hex_code):
-    pass
+import json
+def extract_product_info(data):
+    extracted_info = []
+    
+    for product in data.get("products", []):
+        product_info = {
+            "displayName": product.get("displayName"),
+            "heroImage": product.get("heroImage"),
+            "price": product.get("price"),
+            "productId": product.get("productId"),
+            "reviews": product.get("reviews"),
+            "rating": product.get("rating"),
+            "onSaleData": product.get("onSaleData"),
+            "isLimitedTimeOffer": product.get("isLimitedTimeOffer")
+        }
+        extracted_info.append(product_info)
+    
+    return extracted_info
+
+
+
+def match_foundation_list(hex_code , sort_by , min_price , max_price ):
+    
+    url = "https://sephora.p.rapidapi.com/us/products/v2/search"
+    query = hex_code + "foundation"
+    sort_by = sort_by
+    querystring = {"pageSize":"60","currentPage":"1","q":query,"sortBy":sort_by , "pl" : min_price ,
+                  "ph" : max_price }
+    headers = {
+        "x-rapidapi-key": "2feb5257eemsh93c5c510406ef6dp102d41jsncb609158bbf1",
+        "x-rapidapi-host": "sephora.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+
+    #print(response.json())
+    results = extract_product_info(response.json())
+    return results
+
+
+def product_Recommend(image , sort_by ,min_price , max_price ):
+    img = Image.open(img_path)
+    img_eye = detect_and_crop_eyes(img)
+    img_face= detect_and_crop_faces(img)
+    eye = get_hex_url(num_clusters= 10 , img_path= img_eye)
+    face = get_hex_url(num_clusters= 10 , image_path = eye)
+    match_foundation = match_foundation_list(face , sort_by ,min_price , max_price)
+    extract_product_info(match_foundation)
+    return extract_product_info
+prompt="""You are the Color Analyzer that will recommend color to the people that
+the color that will suit them according to their eye color and face color . 
+So according to it recommend the best palatte colors and fashion analysis to wear  """
+
+def color_analyis(eye_hex_code , face_hex_code):
+    transcript_text = f"eye color : {eye_hex_code} and face color : {face_hex_code}"
+    model=genai.GenerativeModel("gemini-pro")
+    response=model.generate_content(prompt+transcript_text)
+    return response.text
 
 img_path = r"C:\PROJECTS\TrendyShop\cropped_faces\face_1.jpg"  
 dominant_color_hex = get_hex_url(num_clusters=10, img_path=img_path)
 print(dominant_color_hex)
+eye_img_path = r"C:\PROJECTS\TrendyShop\cropped_eyes\eye_1.jpg"  
+dominant_color_eye = get_hex_url(num_clusters=10, img_path=eye_img_path)
+print(dominant_color_eye)
