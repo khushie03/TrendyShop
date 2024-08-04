@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import os
+from main import trend_search
 from PIL import Image
 from io import BytesIO
 import requests
@@ -12,7 +13,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = r'C:\PROJECTS\TrendyShop\uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
-genai.configure(api_key="AIzaSyDM9xdKD9JDW_wu6Lp1gnCraUK3Ds-DPNc")
+genai.configure(api_key="YOUR_GENAI_API_KEY")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -69,7 +70,7 @@ def match_foundation_list(hex_code, sort_by, min_price, max_price):
     query = hex_code + " foundation"
     querystring = {"pageSize": "60", "currentPage": "1", "q": query, "sortBy": sort_by, "pl": min_price, "ph": max_price}
     headers = {
-        "x-rapidapi-key": "2feb5257eemsh93c5c510406ef6dp102d41jsncb609158bbf1",
+        "x-rapidapi-key": "YOUR_RAPIDAPI_KEY",
         "x-rapidapi-host": "sephora.p.rapidapi.com"
     }
 
@@ -113,7 +114,8 @@ def upload_file():
 prompt = """
 You are a color palette analysis expert with respect to the eye color and face color in hex format.
 Suggest the colors that will suit people and the type of clothes they should wear. 
-Write the text in the paragraph form no bullet points or bold text . Just simple text. And Just Provide the text nothing else . """
+Write the text in the paragraph form no bullet points or bold text. Just simple text. And Just Provide the text nothing else.
+"""
 
 @app.route('/color_analysis', methods=['POST'])
 def color_analysis():
@@ -123,6 +125,115 @@ def color_analysis():
     model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(prompt + transcript_text)
     return render_template('color_analysis.html', analysis=response.text)
+
+from serpapi import GoogleSearch
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
+import google.generativeai as genai
+
+genai.configure(api_key=os.getenv('GENAI_API_KEY'))
+
+def trend_search(product_name):
+    def link_extraction(product_name):
+        params = {
+            "engine": "youtube",
+            "search_query": product_name,
+            "api_key": os.getenv('SERPAPI_KEY')
+        }
+
+        search = GoogleSearch(params)
+        results = search.get_dict()
+        video_results = results.get("video_results", [])
+        return video_results
+
+    def get_video_id_from_url(youtube_video_url):
+        if "watch?v=" in youtube_video_url:
+            return youtube_video_url.split("watch?v=")[1]
+        elif "shorts/" in youtube_video_url:
+            return youtube_video_url.split("shorts/")[1]
+        else:
+            return None
+
+    def fetch_transcript(video_id):
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+            return transcript
+        except (TranscriptsDisabled, NoTranscriptFound):
+            try:
+                transcript = YouTubeTranscriptApi.get_transcript(video_id)
+                return transcript
+            except Exception as e:
+                print(f"Error: Could not retrieve a transcript for the video {video_id}! {str(e)}")
+                return None
+
+    def generate_gemini_content(transcript_text):
+        prompt = """
+        Here I am trying to analyze the trends through the trending videos and accordingly generating a list of the products.
+        Here you have given the transcripts of the trending YouTube videos and you have to generate a list of the
+        products that are mentioned in that transcripts. Here automated trend extractor is there which will automatically extract the products 
+        related to the videos.
+        """
+        try:
+            model = genai.GenerativeModel("gemini-pro")
+            response = model.generate_content(prompt + transcript_text)
+            return response.text
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+    video_results = link_extraction(product_name)
+    links, thumbnails = [], []
+
+    for video in video_results:
+        links.append(video['link'])
+        thumbnails.append(video['thumbnail'])
+    
+    products = []
+    for link in links:
+        video_id = get_video_id_from_url(link)
+        if video_id:
+            script = fetch_transcript(video_id)
+            if script:
+                transcript_text = " ".join([item['text'] for item in script])
+                product_list = generate_gemini_content(transcript_text)
+                products.append(product_list)
+            else:
+                products.append("No transcript available")
+        else:
+            products.append("Invalid video link")
+    
+    def link_create(product):
+        params = {
+            "engine": "google_shopping",
+            "q": product,
+            "api_key": os.getenv('GOOGLE_SHOPPING_API_KEY')
+        }
+
+        search = GoogleSearch(params)
+        results = search.get_dict()
+        shopping_results = results.get("shopping_results", [])
+        return shopping_results
+
+    shopping_links = []
+    for product in products:
+        if product.startswith("Error:"):
+            continue
+        shopping_results = link_create(product)
+        if shopping_results:
+            for result in shopping_results:
+                shopping_links.append(result['link'])
+
+    return shopping_links, thumbnails, products
+
+@app.route('/trend_search', methods=['GET', 'POST'])
+def trend_search_route():
+    if request.method == 'POST':
+        product_name = request.form.get('product_name')
+        print(f"Searching for product: {product_name}")
+        results = trend_search(product_name)
+        if results is None:
+            results = []
+        print(f"Search results: {results}")
+        return render_template('trend_results.html', results=results, product_name=product_name)
+    return render_template('trend_search.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -2,7 +2,6 @@ from serpapi import GoogleSearch
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 import google.generativeai as genai
 
-# Configure the Google Generative AI with your API key
 genai.configure(api_key="AIzaSyDM9xdKD9JDW_wu6Lp1gnCraUK3Ds-DPNc")
 
 def trend_search(product_name):
@@ -10,7 +9,7 @@ def trend_search(product_name):
         params = {
             "engine": "youtube",
             "search_query": product_name,
-            "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71"
+            "api_key": "YOUR_SERPAPI_KEY"
         }
 
         search = GoogleSearch(params)
@@ -48,8 +47,8 @@ def trend_search(product_name):
         """
 
         try:
-            model=genai.GenerativeModel("gemini-pro")
-            response=model.generate_content(prompt+transcript_text)
+            model = genai.GenerativeModel("gemini-pro")
+            response = model.generate_content(prompt + transcript_text)
             return response.text
         except Exception as e:
             return f"Error: {str(e)}"
@@ -83,15 +82,26 @@ def trend_search(product_name):
     
     def link_create(product):
         params = {
-    "engine": "google_shopping",
-    "q": product,
-    "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71"
-    }
+            "engine": "google_shopping",
+            "q": product,
+            "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71"
+        }
 
         search = GoogleSearch(params)
         results = search.get_dict()
         shopping_results = results["shopping_results"]
+        return shopping_results
 
-    print(products)
+    shopping_links = []
+    for product in products:
+        if product.startswith("Error:"):
+            continue
+        shopping_results = link_create(product)
+        if shopping_results:
+            for result in shopping_results:
+                print(result)
+                shopping_links.append(result['link'])
+
+    print("Generated product links from Google Shopping:", shopping_links)
 
 trend_search("trending lipstick products")

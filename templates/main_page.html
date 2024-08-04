@@ -59,7 +59,10 @@
           <div class="card-body">
             <h5 class="card-title">MakeUp Finder</h5>
             <p class="card-text">Search for trending makeup products.</p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
+            <a href="#" onclick="document.getElementById('makeupForm').submit()" class="btn btn-primary">Go somewhere</a>
+            <form id="makeupForm" action="/trend_search" method="post" style="display: none;">
+              <input type="hidden" name="product_name" value="Makeup">
+            </form>
           </div>
         </div>
 
@@ -67,16 +70,17 @@
           <img src="https://images.unsplash.com/photo-1599733589046-10c005739ef9?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="card-img-top" alt="...">
           <div class="card-body">
             <h5 class="card-title">Foundation Matcher</h5>
-            <p class="card-text">Found Your Perfect Shade by uploading your Photo</p>
+            <p class="card-text">Find your perfect shade by uploading your photo.</p>
             <a href="foundation" class="btn btn-primary">Find Your Perfect Shade</a>
           </div>
         </div>
+        
         <div class="card" style="width: 18rem;">
           <img src="https://images.unsplash.com/photo-1611605698335-8b1569810432?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dHdpdHRlcnxlbnwwfHwwfHx8MA%3D%3D" class="card-img-top" alt="...">
           <div class="card-body">
             <h5 class="card-title">Tweet It</h5>
-            <p class="card-text">Socialize and let public know your opinions</p>
-            <a href="foundation" class="btn btn-primary">Login To Twitter</a>
+            <p class="card-text">Socialize and let the public know your opinions.</p>
+            <a href="foundation" class="btn btn-primary">Login to Twitter</a>
           </div>
         </div>
       </div>

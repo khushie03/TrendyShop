@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trend Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Trend Search</h1>
+    <form action="/trend_search" method="post">
+        <label for="product_name">Enter product name:</label>
+        <input type="text" id="product_name" name="product_name" required>
+        <button type="submit">Search</button>
+    </form>
+</body>
+</html>
