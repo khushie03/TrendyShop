@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect
 import os
-from main import trend_search
 from PIL import Image
 from io import BytesIO
 import requests
@@ -8,12 +7,15 @@ from colormap import rgb2hex
 from sklearn.cluster import MiniBatchKMeans
 import numpy as np
 import google.generativeai as genai
+from serpapi import GoogleSearch
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound, CouldNotRetrieveTranscript
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = r'C:\PROJECTS\TrendyShop\uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
-genai.configure(api_key="YOUR_GENAI_API_KEY")
+# Configure API keys
+genai.configure(api_key="AIzaSyDM9xdKD9JDW_wu6Lp1gnCraUK3Ds-DPNc")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -126,18 +128,12 @@ def color_analysis():
     response = model.generate_content(prompt + transcript_text)
     return render_template('color_analysis.html', analysis=response.text)
 
-from serpapi import GoogleSearch
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
-import google.generativeai as genai
-
-genai.configure(api_key=os.getenv('GENAI_API_KEY'))
-
 def trend_search(product_name):
     def link_extraction(product_name):
         params = {
             "engine": "youtube",
             "search_query": product_name,
-            "api_key": os.getenv('SERPAPI_KEY')
+            "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71"
         }
 
         search = GoogleSearch(params)
@@ -157,14 +153,13 @@ def trend_search(product_name):
         try:
             transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
             return transcript
-        except (TranscriptsDisabled, NoTranscriptFound):
-            try:
-                transcript = YouTubeTranscriptApi.get_transcript(video_id)
-                return transcript
-            except Exception as e:
-                print(f"Error: Could not retrieve a transcript for the video {video_id}! {str(e)}")
-                return None
-
+        except (CouldNotRetrieveTranscript, NoTranscriptFound):
+            print(f"Error: Could not retrieve a transcript for the video {video_id}!")
+            return None
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            return None
+    
     def generate_gemini_content(transcript_text):
         prompt = """
         Here I am trying to analyze the trends through the trending videos and accordingly generating a list of the products.
@@ -191,12 +186,15 @@ def trend_search(product_name):
         video_id = get_video_id_from_url(link)
         if video_id:
             script = fetch_transcript(video_id)
-            if script:
+            print(script)
+            if script is None:
+                continue
+            if script is not None:
                 transcript_text = " ".join([item['text'] for item in script])
                 product_list = generate_gemini_content(transcript_text)
                 products.append(product_list)
             else:
-                products.append("No transcript available")
+                continue
         else:
             products.append("Invalid video link")
     
@@ -204,7 +202,7 @@ def trend_search(product_name):
         params = {
             "engine": "google_shopping",
             "q": product,
-            "api_key": os.getenv('GOOGLE_SHOPPING_API_KEY')
+            "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71"
         }
 
         search = GoogleSearch(params)
@@ -213,7 +211,7 @@ def trend_search(product_name):
         return shopping_results
 
     shopping_links = []
-    for product in products:
+    for product in products[:3]:
         if product.startswith("Error:"):
             continue
         shopping_results = link_create(product)
@@ -228,11 +226,11 @@ def trend_search_route():
     if request.method == 'POST':
         product_name = request.form.get('product_name')
         print(f"Searching for product: {product_name}")
-        results = trend_search(product_name)
+        results, thumbnails, products = trend_search(product_name)
         if results is None:
             results = []
         print(f"Search results: {results}")
-        return render_template('trend_results.html', results=results, product_name=product_name)
+        return render_template('trend_results.html', results=results, thumbnails=thumbnails, products=products, product_name=product_name)
     return render_template('trend_search.html')
 
 if __name__ == '__main__':
