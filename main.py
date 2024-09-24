@@ -2,7 +2,7 @@ from serpapi import GoogleSearch
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyDM9xdKD9JDW_wu6Lp1gnCraUK3Ds-DPNc")
+genai.configure(api_key="Google Api Key")
 
 def trend_search(product_name):
     def link_extraction(product_name):
@@ -84,7 +84,7 @@ def trend_search(product_name):
         params = {
             "engine": "google_shopping",
             "q": product,
-            "api_key": "c8b912a9727723424bffac813a03eb897d43cee8cfac0741c3b266a6cb8bef71"
+            "api_key": "Serp Api Key"
         }
 
         search = GoogleSearch(params)
